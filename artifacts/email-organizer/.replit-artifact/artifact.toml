@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Email Organizer"
+version = "1.0.0"
+id = "artifacts/email-organizer"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18542
+
+[services.development]
+run = "pnpm --filter @workspace/email-organizer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/email-organizer", "run", "build" ]
+publicDir = "artifacts/email-organizer/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18542"
+BASE_PATH = "/"
