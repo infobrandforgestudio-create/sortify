@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { GmailMessage } from "./gmail";
+import type { EmailMessage } from "./imap";
 import type { Category } from "@workspace/db";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -10,7 +10,7 @@ export interface CategorizationResult {
 }
 
 export async function categorizeEmail(
-  email: GmailMessage,
+  email: EmailMessage,
   categories: Category[]
 ): Promise<CategorizationResult> {
   if (categories.length === 0) return { categoryId: null, confidence: 0 };
@@ -64,7 +64,7 @@ Respond with ONLY a JSON object like: {"categoryId": <number or null>, "confiden
 }
 
 export async function categorizeEmailsBatch(
-  emails: GmailMessage[],
+  emails: EmailMessage[],
   categories: Category[]
 ): Promise<Map<string, CategorizationResult>> {
   const results = new Map<string, CategorizationResult>();

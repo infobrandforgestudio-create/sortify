@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { emailsTable, categoriesTable, emailCategoriesTable, syncStateTable } from "@workspace/db";
+import { emailsTable, categoriesTable, emailCategoriesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
-  checkGmailConnection,
+  checkConnection,
   getSyncState,
   markSyncStarted,
   markSyncFinished,
   fetchRecentEmails,
-} from "../lib/gmail";
+} from "../lib/imap";
 import { categorizeEmailsBatch } from "../lib/categorizer";
 
 const router = Router();
@@ -21,11 +21,11 @@ async function runSync() {
   await markSyncStarted();
 
   try {
-    const gmailMessages = await fetchRecentEmails(100);
+    const messages = await fetchRecentEmails(100);
     const categories = await db.select().from(categoriesTable);
 
     let synced = 0;
-    for (const msg of gmailMessages) {
+    for (const msg of messages) {
       const existing = await db
         .select()
         .from(emailsTable)
@@ -79,7 +79,7 @@ async function runSync() {
 
 router.get("/status", async (_req, res) => {
   const [status, state] = await Promise.all([
-    checkGmailConnection(),
+    checkConnection(),
     getSyncState(),
   ]);
 
@@ -97,18 +97,20 @@ router.get("/status", async (_req, res) => {
 });
 
 router.post("/", async (_req, res) => {
-  const status = await checkGmailConnection();
+  const status = await checkConnection();
+
+  const state = await getSyncState();
+  const totalRows = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(emailsTable);
+
   if (!status.connected) {
-    const state = await getSyncState();
-    const totalRows = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(emailsTable);
     res.json({
       connected: false,
       lastSyncAt: state.lastSyncAt ? state.lastSyncAt.toISOString() : null,
       totalEmails: totalRows[0]?.count ?? 0,
       isSyncing: false,
-      message: status.message ?? "Gmail not connected.",
+      message: status.message ?? "No email account connected.",
     });
     return;
   }
@@ -118,15 +120,10 @@ router.post("/", async (_req, res) => {
     console.error("Sync error:", err);
   });
 
-  const state = await getSyncState();
-  const totalRows = await db
-    .select({ count: db.$count(emailsTable) })
-    .from(emailsTable);
-
   res.json({
     connected: true,
     lastSyncAt: state.lastSyncAt ? state.lastSyncAt.toISOString() : null,
-    totalEmails: Number(totalRows[0]?.count ?? 0),
+    totalEmails: totalRows[0]?.count ?? 0,
     isSyncing: true,
     message: "Sync started",
   });

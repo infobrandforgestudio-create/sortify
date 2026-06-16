@@ -77,6 +77,34 @@ export interface EmailListResponse {
   limit: number;
 }
 
+export interface ImapConfigInput {
+  email: string;
+  imapHost: string;
+  imapPort: number;
+  username: string;
+  password: string;
+  useSsl?: boolean;
+}
+
+export interface ImapConfigResponse {
+  configured: boolean;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  imapHost: string | null;
+  /** @nullable */
+  imapPort: number | null;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  useSsl: boolean | null;
+}
+
+export interface ImapTestResult {
+  success: boolean;
+  message: string;
+}
+
 export interface CreateEmailInput {
   /** @minLength 1 */
   subject: string;

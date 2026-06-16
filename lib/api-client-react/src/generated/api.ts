@@ -28,6 +28,9 @@ import type {
   EmailDetail,
   EmailListResponse,
   HealthStatus,
+  ImapConfigInput,
+  ImapConfigResponse,
+  ImapTestResult,
   ListEmailsParams,
   Stats,
   SyncStatus
@@ -793,6 +796,225 @@ export const useAssignEmailCategory = <TError = ErrorType<unknown>,
       return useMutation(getAssignEmailCategoryMutationOptions(options));
     }
 
+export const getGetImapConfigUrl = () => {
+
+
+
+
+  return `/api/imap/config`
+}
+
+/**
+ * @summary Get current IMAP configuration (password omitted)
+ */
+export const getImapConfig = async ( options?: RequestInit): Promise<ImapConfigResponse> => {
+
+  return customFetch<ImapConfigResponse>(getGetImapConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImapConfigQueryKey = () => {
+    return [
+    `/api/imap/config`
+    ] as const;
+    }
+
+
+export const getGetImapConfigQueryOptions = <TData = Awaited<ReturnType<typeof getImapConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImapConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImapConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImapConfig>>> = ({ signal }) => getImapConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImapConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetImapConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getImapConfig>>>
+export type GetImapConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current IMAP configuration (password omitted)
+ */
+
+export function useGetImapConfig<TData = Awaited<ReturnType<typeof getImapConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImapConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetImapConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveImapConfigUrl = () => {
+
+
+
+
+  return `/api/imap/config`
+}
+
+/**
+ * @summary Save or update IMAP configuration
+ */
+export const saveImapConfig = async (imapConfigInput: ImapConfigInput, options?: RequestInit): Promise<ImapConfigResponse> => {
+
+  return customFetch<ImapConfigResponse>(getSaveImapConfigUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      imapConfigInput,)
+  }
+);}
+
+
+
+
+export const getSaveImapConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext> => {
+
+const mutationKey = ['saveImapConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveImapConfig>>, {data: BodyType<ImapConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveImapConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveImapConfigMutationResult = NonNullable<Awaited<ReturnType<typeof saveImapConfig>>>
+    export type SaveImapConfigMutationBody = BodyType<ImapConfigInput>
+    export type SaveImapConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save or update IMAP configuration
+ */
+export const useSaveImapConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveImapConfig>>,
+        TError,
+        {data: BodyType<ImapConfigInput>},
+        TContext
+      > => {
+      return useMutation(getSaveImapConfigMutationOptions(options));
+    }
+
+export const getTestImapConfigUrl = () => {
+
+
+
+
+  return `/api/imap/test`
+}
+
+/**
+ * @summary Test IMAP connection with given credentials
+ */
+export const testImapConfig = async (imapConfigInput: ImapConfigInput, options?: RequestInit): Promise<ImapTestResult> => {
+
+  return customFetch<ImapTestResult>(getTestImapConfigUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      imapConfigInput,)
+  }
+);}
+
+
+
+
+export const getTestImapConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof testImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext> => {
+
+const mutationKey = ['testImapConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof testImapConfig>>, {data: BodyType<ImapConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  testImapConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TestImapConfigMutationResult = NonNullable<Awaited<ReturnType<typeof testImapConfig>>>
+    export type TestImapConfigMutationBody = BodyType<ImapConfigInput>
+    export type TestImapConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Test IMAP connection with given credentials
+ */
+export const useTestImapConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testImapConfig>>, TError,{data: BodyType<ImapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof testImapConfig>>,
+        TError,
+        {data: BodyType<ImapConfigInput>},
+        TContext
+      > => {
+      return useMutation(getTestImapConfigMutationOptions(options));
+    }
+
 export const getTriggerSyncUrl = () => {
 
 
@@ -802,7 +1024,7 @@ export const getTriggerSyncUrl = () => {
 }
 
 /**
- * @summary Trigger Gmail sync and AI categorization
+ * @summary Trigger email sync and AI categorization
  */
 export const triggerSync = async ( options?: RequestInit): Promise<SyncStatus> => {
 
@@ -850,7 +1072,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type TriggerSyncMutationError = ErrorType<unknown>
 
     /**
- * @summary Trigger Gmail sync and AI categorization
+ * @summary Trigger email sync and AI categorization
  */
 export const useTriggerSync = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof triggerSync>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}

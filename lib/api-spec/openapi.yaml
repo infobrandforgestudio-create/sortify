@@ -224,11 +224,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/EmailDetail"
 
+  /imap/config:
+    get:
+      operationId: getImapConfig
+      tags: [sync]
+      summary: Get current IMAP configuration (password omitted)
+      responses:
+        "200":
+          description: Current config or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImapConfigResponse"
+    post:
+      operationId: saveImapConfig
+      tags: [sync]
+      summary: Save or update IMAP configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImapConfigInput"
+      responses:
+        "200":
+          description: Saved config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImapConfigResponse"
+
+  /imap/test:
+    post:
+      operationId: testImapConfig
+      tags: [sync]
+      summary: Test IMAP connection with given credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImapConfigInput"
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImapTestResult"
+
   /sync:
     post:
       operationId: triggerSync
       tags: [sync]
-      summary: Trigger Gmail sync and AI categorization
+      summary: Trigger email sync and AI categorization
       responses:
         "200":
           description: Sync started
@@ -384,6 +433,49 @@ components:
         limit:
           type: integer
       required: [emails, total, offset, limit]
+
+    ImapConfigInput:
+      type: object
+      properties:
+        email:
+          type: string
+        imapHost:
+          type: string
+        imapPort:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        useSsl:
+          type: boolean
+      required: [email, imapHost, imapPort, username, password]
+
+    ImapConfigResponse:
+      type: object
+      properties:
+        configured:
+          type: boolean
+        email:
+          type: ["string", "null"]
+        imapHost:
+          type: ["string", "null"]
+        imapPort:
+          type: ["integer", "null"]
+        username:
+          type: ["string", "null"]
+        useSsl:
+          type: ["boolean", "null"]
+      required: [configured, email, imapHost, imapPort, username, useSsl]
+
+    ImapTestResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success, message]
 
     CreateEmailInput:
       type: object

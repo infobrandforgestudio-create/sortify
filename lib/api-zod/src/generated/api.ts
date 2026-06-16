@@ -194,7 +194,60 @@ export const AssignEmailCategoryResponse = zod.object({
 
 
 /**
- * @summary Trigger Gmail sync and AI categorization
+ * @summary Get current IMAP configuration (password omitted)
+ */
+export const GetImapConfigResponse = zod.object({
+  "configured": zod.boolean(),
+  "email": zod.string().nullable(),
+  "imapHost": zod.string().nullable(),
+  "imapPort": zod.number().nullable(),
+  "username": zod.string().nullable(),
+  "useSsl": zod.boolean().nullable()
+})
+
+
+/**
+ * @summary Save or update IMAP configuration
+ */
+export const SaveImapConfigBody = zod.object({
+  "email": zod.string(),
+  "imapHost": zod.string(),
+  "imapPort": zod.number(),
+  "username": zod.string(),
+  "password": zod.string(),
+  "useSsl": zod.boolean().optional()
+})
+
+export const SaveImapConfigResponse = zod.object({
+  "configured": zod.boolean(),
+  "email": zod.string().nullable(),
+  "imapHost": zod.string().nullable(),
+  "imapPort": zod.number().nullable(),
+  "username": zod.string().nullable(),
+  "useSsl": zod.boolean().nullable()
+})
+
+
+/**
+ * @summary Test IMAP connection with given credentials
+ */
+export const TestImapConfigBody = zod.object({
+  "email": zod.string(),
+  "imapHost": zod.string(),
+  "imapPort": zod.number(),
+  "username": zod.string(),
+  "password": zod.string(),
+  "useSsl": zod.boolean().optional()
+})
+
+export const TestImapConfigResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Trigger email sync and AI categorization
  */
 export const TriggerSyncResponse = zod.object({
   "connected": zod.boolean(),
