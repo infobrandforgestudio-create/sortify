@@ -7,9 +7,82 @@ import {
   GetEmailParams,
   AssignEmailCategoryParams,
   AssignEmailCategoryBody,
+  CreateEmailBody,
 } from "@workspace/api-zod";
+import { randomUUID } from "crypto";
+import { categorizeEmailsBatch } from "../lib/categorizer";
 
 const router = Router();
+
+router.post("/", async (req, res) => {
+  const parsed = CreateEmailBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid input", details: parsed.error.issues }); return; }
+
+  const { subject, fromAddress, body, receivedAt } = parsed.data;
+  const snippet = body.slice(0, 200);
+  const gmailId = `manual-${randomUUID()}`;
+
+  const [inserted] = await db
+    .insert(emailsTable)
+    .values({
+      gmailId,
+      subject,
+      fromAddress,
+      snippet,
+      body,
+      receivedAt: receivedAt ? new Date(receivedAt) : new Date(),
+      isRead: false,
+    })
+    .returning();
+
+  const categories = await db.select().from(categoriesTable);
+  if (categories.length > 0) {
+    const receivedAtDate = receivedAt ? new Date(receivedAt) : new Date();
+    const resultsMap = await categorizeEmailsBatch(
+      [{ id: gmailId, subject, from: fromAddress, snippet, body, receivedAt: receivedAtDate, isRead: false }],
+      categories
+    ).catch(() => new Map());
+    const match = resultsMap.get(gmailId);
+    if (match?.categoryId) {
+      await db.insert(emailCategoriesTable).values({
+        emailId: inserted.id,
+        categoryId: match.categoryId,
+        confidence: match.confidence,
+        assignedBy: "ai",
+      });
+    }
+  }
+
+  const rows = await db
+    .select({
+      id: emailsTable.id,
+      gmailId: emailsTable.gmailId,
+      subject: emailsTable.subject,
+      fromAddress: emailsTable.fromAddress,
+      snippet: emailsTable.snippet,
+      body: emailsTable.body,
+      receivedAt: emailsTable.receivedAt,
+      isRead: emailsTable.isRead,
+      categoryId: emailCategoriesTable.categoryId,
+      categoryName: categoriesTable.name,
+      categoryColor: categoriesTable.color,
+      assignedBy: emailCategoriesTable.assignedBy,
+    })
+    .from(emailsTable)
+    .leftJoin(emailCategoriesTable, eq(emailsTable.id, emailCategoriesTable.emailId))
+    .leftJoin(categoriesTable, eq(emailCategoriesTable.categoryId, categoriesTable.id))
+    .where(eq(emailsTable.id, inserted.id));
+
+  const r = rows[0];
+  res.status(201).json({
+    ...r,
+    receivedAt: r.receivedAt.toISOString(),
+    categoryId: r.categoryId ?? null,
+    categoryName: r.categoryName ?? null,
+    categoryColor: r.categoryColor ?? null,
+    assignedBy: r.assignedBy ?? null,
+  });
+});
 
 router.get("/", async (req, res) => {
   const parsed = ListEmailsQueryParams.safeParse(req.query);

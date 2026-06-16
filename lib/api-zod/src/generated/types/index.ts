@@ -10,6 +10,7 @@ export * from './category';
 export * from './categoryInput';
 export * from './categoryStat';
 export * from './categoryUpdate';
+export * from './createEmailInput';
 export * from './email';
 export * from './emailAssignInput';
 export * from './emailDetail';

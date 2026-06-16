@@ -98,6 +98,21 @@ export const DeleteCategoryParams = zod.object({
 
 
 /**
+ * @summary Manually add an email to the system
+ */
+
+
+
+
+export const CreateEmailBody = zod.object({
+  "subject": zod.string().min(1),
+  "fromAddress": zod.string().min(1),
+  "body": zod.string(),
+  "receivedAt": zod.string().nullish()
+})
+
+
+/**
  * @summary List emails, optionally filtered by category
  */
 export const ListEmailsQueryParams = zod.object({

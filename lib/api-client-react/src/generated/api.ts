@@ -23,6 +23,7 @@ import type {
   Category,
   CategoryInput,
   CategoryUpdate,
+  CreateEmailInput,
   EmailAssignInput,
   EmailDetail,
   EmailListResponse,
@@ -486,6 +487,77 @@ export const useDeleteCategory = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteCategoryMutationOptions(options));
+    }
+
+export const getCreateEmailUrl = () => {
+
+
+
+
+  return `/api/emails`
+}
+
+/**
+ * @summary Manually add an email to the system
+ */
+export const createEmail = async (createEmailInput: CreateEmailInput, options?: RequestInit): Promise<EmailDetail> => {
+
+  return customFetch<EmailDetail>(getCreateEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createEmailInput,)
+  }
+);}
+
+
+
+
+export const getCreateEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmail>>, TError,{data: BodyType<CreateEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmail>>, TError,{data: BodyType<CreateEmailInput>}, TContext> => {
+
+const mutationKey = ['createEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmail>>, {data: BodyType<CreateEmailInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmailMutationResult = NonNullable<Awaited<ReturnType<typeof createEmail>>>
+    export type CreateEmailMutationBody = BodyType<CreateEmailInput>
+    export type CreateEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually add an email to the system
+ */
+export const useCreateEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmail>>, TError,{data: BodyType<CreateEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createEmail>>,
+        TError,
+        {data: BodyType<CreateEmailInput>},
+        TContext
+      > => {
+      return useMutation(getCreateEmailMutationOptions(options));
     }
 
 export const getListEmailsUrl = (params?: ListEmailsParams,) => {

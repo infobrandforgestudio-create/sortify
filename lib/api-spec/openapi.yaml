@@ -123,6 +123,23 @@ paths:
           description: Deleted
 
   /emails:
+    post:
+      operationId: createEmail
+      tags: [emails]
+      summary: Manually add an email to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmailInput"
+      responses:
+        "201":
+          description: Created email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailDetail"
     get:
       operationId: listEmails
       tags: [emails]
@@ -367,6 +384,21 @@ components:
         limit:
           type: integer
       required: [emails, total, offset, limit]
+
+    CreateEmailInput:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+        fromAddress:
+          type: string
+          minLength: 1
+        body:
+          type: string
+        receivedAt:
+          type: ["string", "null"]
+      required: [subject, fromAddress, body]
 
     EmailAssignInput:
       type: object

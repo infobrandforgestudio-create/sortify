@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useListEmails, useListCategories } from "@workspace/api-client-react";
 import { EmailList } from "@/components/email-list";
 import { Input } from "@/components/ui/input";
-import { Search, FilterX } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AddEmailDialog } from "@/components/add-email-dialog";
 
 export default function Emails() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [uncategorized, setUncategorized] = useState<boolean>(false);
 
@@ -41,16 +43,24 @@ export default function Emails() {
           <p className="text-muted-foreground mt-1 text-sm">Browse your entire inbox.</p>
         </div>
 
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search subject or sender..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-card"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search subject or sender..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 bg-card"
+            />
+          </div>
+          <Button onClick={() => setAddOpen(true)} className="shrink-0">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Email
+          </Button>
         </div>
       </div>
+
+      <AddEmailDialog open={addOpen} onOpenChange={setAddOpen} />
 
       <div className="flex flex-wrap items-center gap-2 pb-2">
         <Badge 

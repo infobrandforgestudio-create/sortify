@@ -77,6 +77,16 @@ export interface EmailListResponse {
   limit: number;
 }
 
+export interface CreateEmailInput {
+  /** @minLength 1 */
+  subject: string;
+  /** @minLength 1 */
+  fromAddress: string;
+  body: string;
+  /** @nullable */
+  receivedAt?: string | null;
+}
+
 export interface EmailAssignInput {
   /** @nullable */
   categoryId: number | null;
