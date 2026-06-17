@@ -491,6 +491,21 @@ components:
           type: ["string", "null"]
       required: [id, gmailId, subject, fromAddress, snippet, receivedAt, isRead, categoryId, categoryName, categoryColor, assignedBy]
 
+    EmailAttachment:
+      type: object
+      properties:
+        id:
+          type: integer
+        emailId:
+          type: integer
+        filename:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: integer
+      required: [id, emailId, filename, contentType, size]
+
     EmailDetail:
       type: object
       properties:
@@ -506,6 +521,8 @@ components:
           type: string
         body:
           type: string
+        htmlBody:
+          type: string
         receivedAt:
           type: string
         isRead:
@@ -518,7 +535,11 @@ components:
           type: ["string", "null"]
         assignedBy:
           type: ["string", "null"]
-      required: [id, gmailId, subject, fromAddress, snippet, body, receivedAt, isRead, categoryId, categoryName, categoryColor, assignedBy]
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmailAttachment"
+      required: [id, gmailId, subject, fromAddress, snippet, body, htmlBody, receivedAt, isRead, categoryId, categoryName, categoryColor, assignedBy, attachments]
 
     EmailListResponse:
       type: object

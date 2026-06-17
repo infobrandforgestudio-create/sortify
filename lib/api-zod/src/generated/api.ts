@@ -204,12 +204,20 @@ export const GetEmailResponse = zod.object({
   "fromAddress": zod.string(),
   "snippet": zod.string(),
   "body": zod.string(),
+  "htmlBody": zod.string(),
   "receivedAt": zod.string(),
   "isRead": zod.boolean(),
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullable(),
   "categoryColor": zod.string().nullable(),
-  "assignedBy": zod.string().nullable()
+  "assignedBy": zod.string().nullable(),
+  "attachments": zod.array(zod.object({
+  "id": zod.number(),
+  "emailId": zod.number(),
+  "filename": zod.string(),
+  "contentType": zod.string(),
+  "size": zod.number()
+}))
 })
 
 
@@ -231,12 +239,20 @@ export const AssignEmailCategoryResponse = zod.object({
   "fromAddress": zod.string(),
   "snippet": zod.string(),
   "body": zod.string(),
+  "htmlBody": zod.string(),
   "receivedAt": zod.string(),
   "isRead": zod.boolean(),
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullable(),
   "categoryColor": zod.string().nullable(),
-  "assignedBy": zod.string().nullable()
+  "assignedBy": zod.string().nullable(),
+  "attachments": zod.array(zod.object({
+  "id": zod.number(),
+  "emailId": zod.number(),
+  "filename": zod.string(),
+  "contentType": zod.string(),
+  "size": zod.number()
+}))
 })
 
 

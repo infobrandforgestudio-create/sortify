@@ -1,7 +1,15 @@
 import { ImapFlow } from "imapflow";
+import { simpleParser } from "mailparser";
 import { db } from "@workspace/db";
 import { imapConfigTable, syncStateTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+
+export interface AttachmentData {
+  filename: string;
+  contentType: string;
+  size: number;
+  data: string; // base64 encoded
+}
 
 export interface EmailMessage {
   id: string;
@@ -9,6 +17,8 @@ export interface EmailMessage {
   from: string;
   snippet: string;
   body: string;
+  htmlBody: string;
+  attachments: AttachmentData[];
   receivedAt: Date;
   isRead: boolean;
 }
@@ -67,7 +77,6 @@ export async function testImapConnection(opts: {
   } catch (err: unknown) {
     await client.close().catch(() => {});
 
-    // ImapFlow errors carry extra fields — prefer them over the generic message
     if (err && typeof err === "object") {
       const e = err as Record<string, unknown>;
 
@@ -85,7 +94,6 @@ export async function testImapConnection(opts: {
         };
       }
 
-      // Other IMAP command errors
       if (typeof e["responseText"] === "string" && e["responseText"]) {
         return { success: false, message: `Connection failed: ${e["responseText"]}` };
       }
@@ -128,10 +136,8 @@ export async function fetchRecentEmails(maxResults = 100): Promise<EmailMessage[
 
       for await (const msg of client.fetch(range, {
         envelope: true,
-        bodyStructure: true,
         flags: true,
         internalDate: true,
-        bodyParts: ["TEXT"],
         source: true,
       })) {
         try {
@@ -144,21 +150,54 @@ export async function fetchRecentEmails(maxResults = 100): Promise<EmailMessage[
               : (fromAddr.address ?? "")
             : "";
 
-          let body = "";
-          if (msg.source) {
-            const raw = msg.source.toString();
-            const bodyStart = raw.indexOf("\r\n\r\n");
-            if (bodyStart !== -1) {
-              body = raw.slice(bodyStart + 4).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-            }
-          }
-
-          const snippet = body.slice(0, 200);
           const isRead = msg.flags?.has("\\Seen") ?? false;
           const receivedAt = msg.internalDate instanceof Date ? msg.internalDate : new Date(msg.internalDate ?? Date.now());
           const uid = msg.uid?.toString() ?? `imap-${Date.now()}-${Math.random()}`;
 
-          messages.push({ id: `imap-${config.email}-${uid}`, subject, from, snippet, body: body.slice(0, 5000), receivedAt, isRead });
+          let htmlBody = "";
+          let textBody = "";
+          const attachments: AttachmentData[] = [];
+
+          if (msg.source) {
+            try {
+              const parsed = await simpleParser(msg.source);
+              htmlBody = parsed.html || "";
+              textBody = parsed.text || "";
+
+              for (const att of parsed.attachments ?? []) {
+                if (att.content && att.content.length > 0) {
+                  attachments.push({
+                    filename: att.filename || "attachment",
+                    contentType: att.contentType || "application/octet-stream",
+                    size: att.size ?? att.content.length,
+                    data: att.content.toString("base64"),
+                  });
+                }
+              }
+            } catch {
+              // fallback: extract text from raw source
+              const raw = msg.source.toString();
+              const bodyStart = raw.indexOf("\r\n\r\n");
+              if (bodyStart !== -1) {
+                textBody = raw.slice(bodyStart + 4).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+              }
+            }
+          }
+
+          const body = textBody || htmlBody.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+          const snippet = body.slice(0, 200);
+
+          messages.push({
+            id: `imap-${config.email}-${uid}`,
+            subject,
+            from,
+            snippet,
+            body: body.slice(0, 5000),
+            htmlBody: htmlBody.slice(0, 500000),
+            attachments,
+            receivedAt,
+            isRead,
+          });
         } catch {
           // skip malformed messages
         }

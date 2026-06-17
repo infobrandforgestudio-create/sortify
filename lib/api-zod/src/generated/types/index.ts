@@ -19,6 +19,7 @@ export * from './createRuleInputFieldType';
 export * from './createRuleInputOperator';
 export * from './email';
 export * from './emailAssignInput';
+export * from './emailAttachment';
 export * from './emailDetail';
 export * from './emailListResponse';
 export * from './healthStatus';

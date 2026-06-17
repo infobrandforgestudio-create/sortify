@@ -5,6 +5,7 @@
  * Email Organizer API
  * OpenAPI spec version: 0.1.0
  */
+import type { EmailAttachment } from './emailAttachment';
 
 export interface EmailDetail {
   id: number;
@@ -13,6 +14,7 @@ export interface EmailDetail {
   fromAddress: string;
   snippet: string;
   body: string;
+  htmlBody: string;
   receivedAt: string;
   isRead: boolean;
   /** @nullable */
@@ -23,4 +25,5 @@ export interface EmailDetail {
   categoryColor: string | null;
   /** @nullable */
   assignedBy: string | null;
+  attachments: EmailAttachment[];
 }

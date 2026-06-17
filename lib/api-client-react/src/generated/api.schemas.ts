@@ -106,6 +106,14 @@ export interface Email {
   assignedBy: string | null;
 }
 
+export interface EmailAttachment {
+  id: number;
+  emailId: number;
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
 export interface EmailDetail {
   id: number;
   gmailId: string;
@@ -113,6 +121,7 @@ export interface EmailDetail {
   fromAddress: string;
   snippet: string;
   body: string;
+  htmlBody: string;
   receivedAt: string;
   isRead: boolean;
   /** @nullable */
@@ -123,6 +132,7 @@ export interface EmailDetail {
   categoryColor: string | null;
   /** @nullable */
   assignedBy: string | null;
+  attachments: EmailAttachment[];
 }
 
 export interface EmailListResponse {

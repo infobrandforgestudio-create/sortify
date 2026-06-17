@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { emailsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
+import { emailsTable, emailAttachmentsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
 import { eq, desc, ilike, or, isNull, and, sql } from "drizzle-orm";
 import {
   ListEmailsQueryParams,
@@ -30,6 +30,7 @@ router.post("/", async (req, res) => {
       fromAddress,
       snippet,
       body,
+      htmlBody: "",
       receivedAt: receivedAt ? new Date(receivedAt) : new Date(),
       isRead: false,
     })
@@ -42,7 +43,7 @@ router.post("/", async (req, res) => {
   if (categories.length > 0) {
     const receivedAtDate = receivedAt ? new Date(receivedAt) : new Date();
     const resultsMap = await categorizeEmailsBatch(
-      [{ id: gmailId, subject, from: fromAddress, snippet, body, receivedAt: receivedAtDate, isRead: false }],
+      [{ id: gmailId, subject, from: fromAddress, snippet, body, htmlBody: "", attachments: [], receivedAt: receivedAtDate, isRead: false }],
       categories,
       rules
     ).catch(() => new Map());
@@ -65,6 +66,7 @@ router.post("/", async (req, res) => {
       fromAddress: emailsTable.fromAddress,
       snippet: emailsTable.snippet,
       body: emailsTable.body,
+      htmlBody: emailsTable.htmlBody,
       receivedAt: emailsTable.receivedAt,
       isRead: emailsTable.isRead,
       categoryId: emailCategoriesTable.categoryId,
@@ -85,6 +87,7 @@ router.post("/", async (req, res) => {
     categoryName: r.categoryName ?? null,
     categoryColor: r.categoryColor ?? null,
     assignedBy: r.assignedBy ?? null,
+    attachments: [],
   });
 });
 
@@ -172,6 +175,7 @@ router.get("/:id", async (req, res) => {
       fromAddress: emailsTable.fromAddress,
       snippet: emailsTable.snippet,
       body: emailsTable.body,
+      htmlBody: emailsTable.htmlBody,
       receivedAt: emailsTable.receivedAt,
       isRead: emailsTable.isRead,
       categoryId: emailCategoriesTable.categoryId,
@@ -186,6 +190,17 @@ router.get("/:id", async (req, res) => {
 
   if (rows.length === 0) { res.status(404).json({ error: "Not found" }); return; }
 
+  const attachments = await db
+    .select({
+      id: emailAttachmentsTable.id,
+      emailId: emailAttachmentsTable.emailId,
+      filename: emailAttachmentsTable.filename,
+      contentType: emailAttachmentsTable.contentType,
+      size: emailAttachmentsTable.size,
+    })
+    .from(emailAttachmentsTable)
+    .where(eq(emailAttachmentsTable.emailId, parsed.data.id));
+
   const r = rows[0];
   res.json({
     ...r,
@@ -194,7 +209,31 @@ router.get("/:id", async (req, res) => {
     categoryName: r.categoryName ?? null,
     categoryColor: r.categoryColor ?? null,
     assignedBy: r.assignedBy ?? null,
+    attachments,
   });
+});
+
+router.get("/:id/attachments/:attId", async (req, res) => {
+  const emailId = Number(req.params.id);
+  const attId = Number(req.params.attId);
+
+  if (isNaN(emailId) || isNaN(attId)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  const rows = await db
+    .select()
+    .from(emailAttachmentsTable)
+    .where(and(eq(emailAttachmentsTable.id, attId), eq(emailAttachmentsTable.emailId, emailId)))
+    .limit(1);
+
+  if (rows.length === 0) { res.status(404).json({ error: "Not found" }); return; }
+
+  const att = rows[0];
+  const buffer = Buffer.from(att.data, "base64");
+
+  res.setHeader("Content-Type", att.contentType);
+  res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(att.filename)}"`);
+  res.setHeader("Content-Length", String(buffer.length));
+  res.send(buffer);
 });
 
 router.post("/:id/assign", async (req, res) => {
@@ -229,6 +268,7 @@ router.post("/:id/assign", async (req, res) => {
       fromAddress: emailsTable.fromAddress,
       snippet: emailsTable.snippet,
       body: emailsTable.body,
+      htmlBody: emailsTable.htmlBody,
       receivedAt: emailsTable.receivedAt,
       isRead: emailsTable.isRead,
       categoryId: emailCategoriesTable.categoryId,
@@ -241,6 +281,17 @@ router.post("/:id/assign", async (req, res) => {
     .leftJoin(categoriesTable, eq(emailCategoriesTable.categoryId, categoriesTable.id))
     .where(eq(emailsTable.id, emailId));
 
+  const attachments = await db
+    .select({
+      id: emailAttachmentsTable.id,
+      emailId: emailAttachmentsTable.emailId,
+      filename: emailAttachmentsTable.filename,
+      contentType: emailAttachmentsTable.contentType,
+      size: emailAttachmentsTable.size,
+    })
+    .from(emailAttachmentsTable)
+    .where(eq(emailAttachmentsTable.emailId, emailId));
+
   const r = rows[0];
   res.json({
     ...r,
@@ -249,6 +300,7 @@ router.post("/:id/assign", async (req, res) => {
     categoryName: r.categoryName ?? null,
     categoryColor: r.categoryColor ?? null,
     assignedBy: r.assignedBy ?? null,
+    attachments,
   });
 });
 

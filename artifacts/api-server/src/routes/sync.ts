@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { emailsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
+import { emailsTable, emailAttachmentsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   checkConnection,
@@ -48,11 +48,25 @@ async function runSync() {
             fromAddress: msg.from,
             snippet: msg.snippet,
             body: msg.body,
+            htmlBody: msg.htmlBody,
             receivedAt: msg.receivedAt,
             isRead: msg.isRead,
           })
           .returning();
         emailId = inserted[0].id;
+
+        if (msg.attachments.length > 0) {
+          await db.insert(emailAttachmentsTable).values(
+            msg.attachments.map((att) => ({
+              emailId,
+              filename: att.filename,
+              contentType: att.contentType,
+              size: att.size,
+              data: att.data,
+            }))
+          );
+        }
+
         synced++;
       } else {
         emailId = existing[0].id;

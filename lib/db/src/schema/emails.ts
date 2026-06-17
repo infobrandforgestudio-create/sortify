@@ -9,6 +9,7 @@ export const emailsTable = pgTable("emails", {
   fromAddress: text("from_address").notNull().default(""),
   snippet: text("snippet").notNull().default(""),
   body: text("body").notNull().default(""),
+  htmlBody: text("html_body").notNull().default(""),
   receivedAt: timestamp("received_at").notNull().defaultNow(),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
