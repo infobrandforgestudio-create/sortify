@@ -56,11 +56,44 @@ export async function testImapConnection(opts: {
     tls: { rejectUnauthorized: false },
   });
 
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Connection timed out after 15 seconds. Check your IMAP host and port.")), 15000)
+  );
+
   try {
-    await client.connect();
+    await Promise.race([client.connect(), timeout]);
     await client.logout();
     return { success: true, message: `Connected successfully to ${opts.imapHost}` };
   } catch (err: unknown) {
+    await client.close().catch(() => {});
+
+    // ImapFlow errors carry extra fields — prefer them over the generic message
+    if (err && typeof err === "object") {
+      const e = err as Record<string, unknown>;
+
+      if (e["authenticationFailed"]) {
+        const detail = typeof e["responseText"] === "string" ? e["responseText"] : "";
+        if (opts.imapHost.includes("gmail")) {
+          return {
+            success: false,
+            message: `Authentication failed. For Gmail you must: (1) enable 2-Step Verification, (2) create an App Password at myaccount.google.com/apppasswords, and (3) enable IMAP in Gmail → Settings → See all settings → Forwarding and POP/IMAP.${detail ? ` Server said: ${detail}` : ""}`,
+          };
+        }
+        return {
+          success: false,
+          message: `Authentication failed — wrong email or app password.${detail ? ` Server said: ${detail}` : ""} Make sure you are using an app-specific password, not your regular login password.`,
+        };
+      }
+
+      // Other IMAP command errors
+      if (typeof e["responseText"] === "string" && e["responseText"]) {
+        return { success: false, message: `Connection failed: ${e["responseText"]}` };
+      }
+      if (typeof e["response"] === "string" && e["response"]) {
+        return { success: false, message: `Connection failed: ${e["response"]}` };
+      }
+    }
+
     const msg = err instanceof Error ? err.message : String(err);
     return { success: false, message: `Connection failed: ${msg}` };
   }
