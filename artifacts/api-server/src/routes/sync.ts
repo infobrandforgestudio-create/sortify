@@ -10,6 +10,7 @@ import {
   fetchRecentEmails,
 } from "../lib/imap";
 import { categorizeEmailsBatch } from "../lib/categorizer";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -20,14 +21,17 @@ async function runSync() {
   syncInProgress = true;
   await markSyncStarted();
 
+  let synced = 0;
+
   try {
     const messages = await fetchRecentEmails(100);
+    logger.info({ count: messages.length }, "Fetched emails from IMAP");
+
     const [categories, rules] = await Promise.all([
       db.select().from(categoriesTable),
       db.select().from(categoryRulesTable),
     ]);
 
-    let synced = 0;
     for (const msg of messages) {
       const existing = await db
         .select()
@@ -75,6 +79,15 @@ async function runSync() {
 
     const state = await getSyncState();
     await markSyncFinished(state.totalEmailsSynced + synced);
+    logger.info({ synced }, "Sync completed successfully");
+  } catch (err) {
+    logger.error({ err }, "Sync failed — resetting sync state");
+    try {
+      const state = await getSyncState();
+      await markSyncFinished(state.totalEmailsSynced + synced);
+    } catch (resetErr) {
+      logger.error({ err: resetErr }, "Failed to reset isSyncing state");
+    }
   } finally {
     syncInProgress = false;
   }
@@ -118,10 +131,7 @@ router.post("/", async (_req, res) => {
     return;
   }
 
-  runSync().catch((err) => {
-    syncInProgress = false;
-    console.error("Sync error:", err);
-  });
+  runSync();
 
   res.json({
     connected: true,
