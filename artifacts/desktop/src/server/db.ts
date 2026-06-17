@@ -92,6 +92,12 @@ function initDb() {
       last_page_token TEXT,
       updated_at INTEGER NOT NULL DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL DEFAULT '',
+      updated_at INTEGER NOT NULL DEFAULT 0
+    );
   `);
 
   return drizzle(sqlite, { schema });

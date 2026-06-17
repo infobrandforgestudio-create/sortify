@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useListCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, getListCategoriesQueryKey, getGetStatsQueryKey } from "@workspace/api-client-react";
-import { Category } from "@workspace/api-client-react/src/generated/api.schemas";
+import { Category } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

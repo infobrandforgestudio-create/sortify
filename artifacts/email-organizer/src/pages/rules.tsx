@@ -7,7 +7,7 @@ import {
   getListCategoryRulesQueryKey,
   getListCategoriesQueryKey,
 } from "@workspace/api-client-react";
-import { Category, CategoryRule } from "@workspace/api-client-react/src/generated/api.schemas";
+import { Category, CategoryRule } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

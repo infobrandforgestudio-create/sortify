@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { db } from "../db";
-import { emailsTable, emailAttachmentsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "../schema";
+import { emailsTable, emailAttachmentsTable, categoriesTable, emailCategoriesTable, categoryRulesTable, appSettingsTable } from "../schema";
 import { eq, sql } from "drizzle-orm";
 import { checkConnection, getSyncState, markSyncStarted, markSyncFinished, fetchRecentEmails } from "../lib/imap";
-import { categorizeEmailsBatch } from "../lib/categorizer";
+import { categorizeEmailsBatch, resolveApiKey } from "../lib/categorizer";
 
 const router = Router();
 
@@ -27,6 +27,8 @@ async function runSync() {
 
     const categories = db.select().from(categoriesTable).all();
     const rules = db.select().from(categoryRulesTable).all();
+    const keyRow = db.select().from(appSettingsTable).where(eq(appSettingsTable.key, "openai_api_key")).get();
+    const apiKey = resolveApiKey(keyRow?.value);
 
     for (const msg of messages) {
       const existing = db.select().from(emailsTable).where(eq(emailsTable.gmailId, msg.id)).all();
@@ -53,7 +55,7 @@ async function runSync() {
       const alreadyCategorized = db.select().from(emailCategoriesTable).where(eq(emailCategoriesTable.emailId, emailId)).all();
 
       if (alreadyCategorized.length === 0 && categories.length > 0) {
-        const results = await categorizeEmailsBatch([msg], categories, rules);
+        const results = await categorizeEmailsBatch([msg], categories, rules, apiKey);
         const result = results.get(msg.id);
         if (result && result.categoryId !== null) {
           db.insert(emailCategoriesTable).values({ emailId, categoryId: result.categoryId, confidence: result.confidence, assignedBy: result.assignedBy }).run();

@@ -2,8 +2,13 @@ import OpenAI from "openai";
 import type { EmailMessage } from "./imap";
 import type { Category, CategoryRule } from "../schema";
 
-function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI(apiKey: string) {
+  return new OpenAI({ apiKey });
+}
+
+export function resolveApiKey(dbKey?: string): string | null {
+  const key = dbKey?.trim() || process.env.OPENAI_API_KEY?.trim() || "";
+  return key.length > 0 ? key : null;
 }
 
 export interface CategorizationResult {
@@ -32,12 +37,13 @@ function matchesRule(email: EmailMessage, rule: CategoryRule): boolean {
 
 export async function categorizeEmail(
   email: EmailMessage,
-  categories: Category[]
+  categories: Category[],
+  apiKey: string | null = null
 ): Promise<CategorizationResult> {
   if (categories.length === 0) return { categoryId: null, confidence: 0, assignedBy: "ai" };
-  if (!process.env.OPENAI_API_KEY) return { categoryId: null, confidence: 0, assignedBy: "ai" };
+  if (!apiKey) return { categoryId: null, confidence: 0, assignedBy: "ai" };
 
-  const openai = getOpenAI();
+  const openai = getOpenAI(apiKey);
   const categoryList = categories.map((c) => `- ID ${c.id}: "${c.name}" — ${c.description}`).join("\n");
   const emailContent = [
     `Subject: ${email.subject}`,
@@ -83,7 +89,8 @@ Respond with ONLY a JSON object like: {"categoryId": <number or null>, "confiden
 export async function categorizeEmailsBatch(
   emails: EmailMessage[],
   categories: Category[],
-  rules: CategoryRule[] = []
+  rules: CategoryRule[] = [],
+  apiKey: string | null = null
 ): Promise<Map<string, CategorizationResult>> {
   const results = new Map<string, CategorizationResult>();
   const needsAI: EmailMessage[] = [];
@@ -103,7 +110,7 @@ export async function categorizeEmailsBatch(
   const CONCURRENCY = 3;
   for (let i = 0; i < needsAI.length; i += CONCURRENCY) {
     const batch = needsAI.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(batch.map((email) => categorizeEmail(email, categories)));
+    const batchResults = await Promise.all(batch.map((email) => categorizeEmail(email, categories, apiKey)));
     batch.forEach((email, idx) => { results.set(email.id, batchResults[idx]); });
   }
 

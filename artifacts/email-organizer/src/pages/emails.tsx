@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useListEmails, useListCategories } from "@workspace/api-client-react";
 import { EmailList } from "@/components/email-list";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export default function Emails() {
   const [uncategorized, setUncategorized] = useState<boolean>(false);
 
   // very simple debounce
-  useState(() => {
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
     }, 300);

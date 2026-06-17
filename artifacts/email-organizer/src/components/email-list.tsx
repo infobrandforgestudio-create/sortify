@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Email } from "@workspace/api-client-react/src/generated/api.schemas";
+import { Email } from "@workspace/api-client-react";
 import { formatShortDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

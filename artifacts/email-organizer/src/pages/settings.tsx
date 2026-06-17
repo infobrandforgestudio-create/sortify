@@ -12,11 +12,116 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, CheckCircle2, Settings2, Loader2, ChevronLeft, ExternalLink } from "lucide-react";
+import { RefreshCw, CheckCircle2, Settings2, Loader2, ChevronLeft, ExternalLink, Sparkles, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+
+const IS_DESKTOP = import.meta.env.VITE_DESKTOP_MODE === "true";
+
+function AISettingsCard() {
+  const [keyInput, setKeyInput] = useState("");
+  const [showKey, setShowKey] = useState(false);
+
+  const { data, isLoading } = useQuery<{ hasKey: boolean; openaiApiKey: string }>({
+    queryKey: ["desktop-ai-settings"],
+    queryFn: () => fetch("/api/settings").then((r) => r.json()),
+    enabled: IS_DESKTOP,
+  });
+
+  const save = useMutation({
+    mutationFn: (key: string) =>
+      fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ openaiApiKey: key }),
+      }).then((r) => r.json()),
+    onSuccess: (_result, key) => {
+      toast.success(key ? "API key saved" : "API key removed", {
+        description: key ? "AI categorization is now active." : "Emails will sync without AI sorting.",
+      });
+      setKeyInput("");
+    },
+    onError: () => toast.error("Failed to save API key."),
+  });
+
+  if (!IS_DESKTOP || isLoading) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Sparkles className="w-4 h-4 text-primary" />
+          AI Categorization
+        </CardTitle>
+        <CardDescription>
+          Enter your OpenAI API key to enable GPT-4o-mini email sorting.
+          Your key is stored locally on your machine.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {data?.hasKey && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-sm">
+            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <span className="text-green-700 dark:text-green-400">
+              API key configured — AI categorization is active.
+            </span>
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <Label htmlFor="openai-key">{data?.hasKey ? "Replace API key" : "OpenAI API key"}</Label>
+          <div className="relative">
+            <Input
+              id="openai-key"
+              type={showKey ? "text" : "password"}
+              placeholder="sk-..."
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              className="pr-10 font-mono text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowKey((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Get one at{" "}
+            <a
+              href="https://platform.openai.com/api-keys"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              platform.openai.com/api-keys
+            </a>
+          </p>
+        </div>
+      </CardContent>
+      <CardFooter className="border-t border-border pt-4 gap-3">
+        <Button
+          onClick={() => save.mutate(keyInput.trim())}
+          disabled={!keyInput.trim() || save.isPending}
+        >
+          {save.isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving…</> : "Save Key"}
+        </Button>
+        {data?.hasKey && (
+          <Button
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => save.mutate("")}
+            disabled={save.isPending}
+          >
+            Remove key
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
 
 interface Provider {
   id: string;
@@ -292,6 +397,8 @@ export default function Settings() {
             </Button>
           </CardFooter>
         </Card>
+
+        <AISettingsCard />
       </div>
     );
   }
@@ -327,6 +434,8 @@ export default function Settings() {
             <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
           </div>
         )}
+
+        <AISettingsCard />
       </div>
     );
   }

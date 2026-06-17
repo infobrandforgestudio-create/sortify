@@ -72,5 +72,11 @@ export const syncStateTable = sqliteTable("sync_state", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 });
 
+export const appSettingsTable = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull().default(""),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+});
+
 export type Category = typeof categoriesTable.$inferSelect;
 export type CategoryRule = typeof categoryRulesTable.$inferSelect;
