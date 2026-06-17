@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import Categories from "@/pages/categories";
 import CategoryEmails from "@/pages/category-emails";
 import Emails from "@/pages/emails";
+import Rules from "@/pages/rules";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
@@ -29,6 +30,7 @@ function Router() {
         <Route path="/categories" component={Categories} />
         <Route path="/categories/:id" component={CategoryEmails} />
         <Route path="/emails" component={Emails} />
+        <Route path="/rules" component={Rules} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

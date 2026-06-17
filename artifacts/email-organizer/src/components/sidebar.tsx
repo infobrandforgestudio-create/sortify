@@ -5,7 +5,8 @@ import {
   LayoutDashboard, 
   Settings, 
   Tags,
-  Mail
+  Mail,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export function Sidebar() {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/emails", label: "All Emails", icon: Inbox },
     { href: "/categories", label: "Categories", icon: Tags },
+    { href: "/rules", label: "Rules", icon: Zap },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 
