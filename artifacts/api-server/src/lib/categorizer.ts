@@ -1,19 +1,43 @@
 import OpenAI from "openai";
 import type { EmailMessage } from "./imap";
-import type { Category } from "@workspace/db";
+import type { Category, CategoryRule } from "@workspace/db";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface CategorizationResult {
   categoryId: number | null;
   confidence: number;
+  assignedBy: "ai" | "rule";
+}
+
+function matchesRule(email: EmailMessage, rule: CategoryRule): boolean {
+  const fields: Record<string, string> = {
+    sender: email.from.toLowerCase(),
+    subject: email.subject.toLowerCase(),
+    body: (email.body ?? "").toLowerCase(),
+  };
+  const field = fields[rule.fieldType] ?? "";
+  const val = rule.value.toLowerCase();
+
+  switch (rule.operator) {
+    case "contains":
+      return field.includes(val);
+    case "equals":
+      return field === val;
+    case "starts_with":
+      return field.startsWith(val);
+    case "ends_with":
+      return field.endsWith(val);
+    default:
+      return false;
+  }
 }
 
 export async function categorizeEmail(
   email: EmailMessage,
   categories: Category[]
 ): Promise<CategorizationResult> {
-  if (categories.length === 0) return { categoryId: null, confidence: 0 };
+  if (categories.length === 0) return { categoryId: null, confidence: 0, assignedBy: "ai" };
 
   const categoryList = categories
     .map((c) => `- ID ${c.id}: "${c.name}" — ${c.description}`)
@@ -54,24 +78,42 @@ Respond with ONLY a JSON object like: {"categoryId": <number or null>, "confiden
     const confidence = parsed.confidence ?? 0.8;
 
     if (categoryId !== null && !categories.find((c) => c.id === categoryId)) {
-      return { categoryId: null, confidence: 0 };
+      return { categoryId: null, confidence: 0, assignedBy: "ai" };
     }
 
-    return { categoryId, confidence };
+    return { categoryId, confidence, assignedBy: "ai" };
   } catch {
-    return { categoryId: null, confidence: 0 };
+    return { categoryId: null, confidence: 0, assignedBy: "ai" };
   }
 }
 
 export async function categorizeEmailsBatch(
   emails: EmailMessage[],
-  categories: Category[]
+  categories: Category[],
+  rules: CategoryRule[] = []
 ): Promise<Map<string, CategorizationResult>> {
   const results = new Map<string, CategorizationResult>();
-  const CONCURRENCY = 3;
+  const needsAI: EmailMessage[] = [];
 
-  for (let i = 0; i < emails.length; i += CONCURRENCY) {
-    const batch = emails.slice(i, i + CONCURRENCY);
+  for (const email of emails) {
+    let matched = false;
+    for (const rule of rules) {
+      if (matchesRule(email, rule)) {
+        results.set(email.id, {
+          categoryId: rule.categoryId,
+          confidence: 1.0,
+          assignedBy: "rule",
+        });
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) needsAI.push(email);
+  }
+
+  const CONCURRENCY = 3;
+  for (let i = 0; i < needsAI.length; i += CONCURRENCY) {
+    const batch = needsAI.slice(i, i + CONCURRENCY);
     const batchResults = await Promise.all(
       batch.map((email) => categorizeEmail(email, categories))
     );

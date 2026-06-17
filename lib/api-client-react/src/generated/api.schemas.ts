@@ -15,6 +15,7 @@ export interface Category {
   description: string;
   color: string;
   emailCount: number;
+  ruleCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,60 @@ export interface CategoryUpdate {
   name?: string;
   description?: string;
   color?: string;
+}
+
+export type CategoryRuleFieldType = typeof CategoryRuleFieldType[keyof typeof CategoryRuleFieldType];
+
+
+export const CategoryRuleFieldType = {
+  sender: 'sender',
+  subject: 'subject',
+  body: 'body',
+} as const;
+
+export type CategoryRuleOperator = typeof CategoryRuleOperator[keyof typeof CategoryRuleOperator];
+
+
+export const CategoryRuleOperator = {
+  contains: 'contains',
+  equals: 'equals',
+  starts_with: 'starts_with',
+  ends_with: 'ends_with',
+} as const;
+
+export interface CategoryRule {
+  id: number;
+  categoryId: number;
+  fieldType: CategoryRuleFieldType;
+  operator: CategoryRuleOperator;
+  value: string;
+  createdAt: string;
+}
+
+export type CreateRuleInputFieldType = typeof CreateRuleInputFieldType[keyof typeof CreateRuleInputFieldType];
+
+
+export const CreateRuleInputFieldType = {
+  sender: 'sender',
+  subject: 'subject',
+  body: 'body',
+} as const;
+
+export type CreateRuleInputOperator = typeof CreateRuleInputOperator[keyof typeof CreateRuleInputOperator];
+
+
+export const CreateRuleInputOperator = {
+  contains: 'contains',
+  equals: 'equals',
+  starts_with: 'starts_with',
+  ends_with: 'ends_with',
+} as const;
+
+export interface CreateRuleInput {
+  fieldType: CreateRuleInputFieldType;
+  operator: CreateRuleInputOperator;
+  /** @minLength 1 */
+  value: string;
 }
 
 export interface Email {

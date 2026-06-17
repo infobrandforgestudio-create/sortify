@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { emailsTable, categoriesTable, emailCategoriesTable } from "@workspace/db";
+import { emailsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
 import { eq, desc, ilike, or, isNull, and, sql } from "drizzle-orm";
 import {
   ListEmailsQueryParams,
@@ -35,12 +35,16 @@ router.post("/", async (req, res) => {
     })
     .returning();
 
-  const categories = await db.select().from(categoriesTable);
+  const [categories, rules] = await Promise.all([
+    db.select().from(categoriesTable),
+    db.select().from(categoryRulesTable),
+  ]);
   if (categories.length > 0) {
     const receivedAtDate = receivedAt ? new Date(receivedAt) : new Date();
     const resultsMap = await categorizeEmailsBatch(
       [{ id: gmailId, subject, from: fromAddress, snippet, body, receivedAt: receivedAtDate, isRead: false }],
-      categories
+      categories,
+      rules
     ).catch(() => new Map());
     const match = resultsMap.get(gmailId);
     if (match?.categoryId) {
@@ -48,7 +52,7 @@ router.post("/", async (req, res) => {
         emailId: inserted.id,
         categoryId: match.categoryId,
         confidence: match.confidence,
-        assignedBy: "ai",
+        assignedBy: match.assignedBy,
       });
     }
   }

@@ -22,8 +22,10 @@ import type {
 import type {
   Category,
   CategoryInput,
+  CategoryRule,
   CategoryUpdate,
   CreateEmailInput,
+  CreateRuleInput,
   EmailAssignInput,
   EmailDetail,
   EmailListResponse,
@@ -490,6 +492,227 @@ export const useDeleteCategory = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteCategoryMutationOptions(options));
+    }
+
+export const getListCategoryRulesUrl = (id: number,) => {
+
+
+
+
+  return `/api/categories/${id}/rules`
+}
+
+/**
+ * @summary List rules for a category
+ */
+export const listCategoryRules = async (id: number, options?: RequestInit): Promise<CategoryRule[]> => {
+
+  return customFetch<CategoryRule[]>(getListCategoryRulesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCategoryRulesQueryKey = (id: number,) => {
+    return [
+    `/api/categories/${id}/rules`
+    ] as const;
+    }
+
+
+export const getListCategoryRulesQueryOptions = <TData = Awaited<ReturnType<typeof listCategoryRules>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCategoryRules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCategoryRulesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCategoryRules>>> = ({ signal }) => listCategoryRules(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCategoryRules>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCategoryRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listCategoryRules>>>
+export type ListCategoryRulesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List rules for a category
+ */
+
+export function useListCategoryRules<TData = Awaited<ReturnType<typeof listCategoryRules>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCategoryRules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCategoryRulesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCategoryRuleUrl = (id: number,) => {
+
+
+
+
+  return `/api/categories/${id}/rules`
+}
+
+/**
+ * @summary Add a rule to a category
+ */
+export const createCategoryRule = async (id: number,
+    createRuleInput: CreateRuleInput, options?: RequestInit): Promise<CategoryRule> => {
+
+  return customFetch<CategoryRule>(getCreateCategoryRuleUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createRuleInput,)
+  }
+);}
+
+
+
+
+export const getCreateCategoryRuleMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategoryRule>>, TError,{id: number;data: BodyType<CreateRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCategoryRule>>, TError,{id: number;data: BodyType<CreateRuleInput>}, TContext> => {
+
+const mutationKey = ['createCategoryRule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCategoryRule>>, {id: number;data: BodyType<CreateRuleInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createCategoryRule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCategoryRuleMutationResult = NonNullable<Awaited<ReturnType<typeof createCategoryRule>>>
+    export type CreateCategoryRuleMutationBody = BodyType<CreateRuleInput>
+    export type CreateCategoryRuleMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a rule to a category
+ */
+export const useCreateCategoryRule = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCategoryRule>>, TError,{id: number;data: BodyType<CreateRuleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCategoryRule>>,
+        TError,
+        {id: number;data: BodyType<CreateRuleInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCategoryRuleMutationOptions(options));
+    }
+
+export const getDeleteCategoryRuleUrl = (id: number,
+    ruleId: number,) => {
+
+
+
+
+  return `/api/categories/${id}/rules/${ruleId}`
+}
+
+/**
+ * @summary Delete a rule from a category
+ */
+export const deleteCategoryRule = async (id: number,
+    ruleId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCategoryRuleUrl(id,ruleId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCategoryRuleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategoryRule>>, TError,{id: number;ruleId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCategoryRule>>, TError,{id: number;ruleId: number}, TContext> => {
+
+const mutationKey = ['deleteCategoryRule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCategoryRule>>, {id: number;ruleId: number}> = (props) => {
+          const {id,ruleId} = props ?? {};
+
+          return  deleteCategoryRule(id,ruleId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCategoryRuleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCategoryRule>>>
+
+    export type DeleteCategoryRuleMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a rule from a category
+ */
+export const useDeleteCategoryRule = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCategoryRule>>, TError,{id: number;ruleId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCategoryRule>>,
+        TError,
+        {id: number;ruleId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCategoryRuleMutationOptions(options));
     }
 
 export const getCreateEmailUrl = () => {

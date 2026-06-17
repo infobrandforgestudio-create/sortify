@@ -8,9 +8,15 @@
 
 export * from './category';
 export * from './categoryInput';
+export * from './categoryRule';
+export * from './categoryRuleFieldType';
+export * from './categoryRuleOperator';
 export * from './categoryStat';
 export * from './categoryUpdate';
 export * from './createEmailInput';
+export * from './createRuleInput';
+export * from './createRuleInputFieldType';
+export * from './createRuleInputOperator';
 export * from './email';
 export * from './emailAssignInput';
 export * from './emailDetail';

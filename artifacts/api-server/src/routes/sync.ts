@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { emailsTable, categoriesTable, emailCategoriesTable } from "@workspace/db";
+import { emailsTable, categoriesTable, emailCategoriesTable, categoryRulesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
   checkConnection,
@@ -22,7 +22,10 @@ async function runSync() {
 
   try {
     const messages = await fetchRecentEmails(100);
-    const categories = await db.select().from(categoriesTable);
+    const [categories, rules] = await Promise.all([
+      db.select().from(categoriesTable),
+      db.select().from(categoryRulesTable),
+    ]);
 
     let synced = 0;
     for (const msg of messages) {
@@ -57,14 +60,14 @@ async function runSync() {
         .where(eq(emailCategoriesTable.emailId, emailId));
 
       if (alreadyCategorized.length === 0 && categories.length > 0) {
-        const results = await categorizeEmailsBatch([msg], categories);
+        const results = await categorizeEmailsBatch([msg], categories, rules);
         const result = results.get(msg.id);
         if (result && result.categoryId !== null) {
           await db.insert(emailCategoriesTable).values({
             emailId,
             categoryId: result.categoryId,
             confidence: result.confidence,
-            assignedBy: "ai",
+            assignedBy: result.assignedBy,
           });
         }
       }

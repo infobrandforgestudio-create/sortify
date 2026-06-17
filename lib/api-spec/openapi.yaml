@@ -122,6 +122,72 @@ paths:
         "204":
           description: Deleted
 
+  /categories/{id}/rules:
+    get:
+      operationId: listCategoryRules
+      tags: [categories]
+      summary: List rules for a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryRule"
+    post:
+      operationId: createCategoryRule
+      tags: [categories]
+      summary: Add a rule to a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRuleInput"
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryRule"
+        "404":
+          description: Category not found
+
+  /categories/{id}/rules/{ruleId}:
+    delete:
+      operationId: deleteCategoryRule
+      tags: [categories]
+      summary: Delete a rule from a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /emails:
     post:
       operationId: createEmail
@@ -334,11 +400,13 @@ components:
           type: string
         emailCount:
           type: integer
+        ruleCount:
+          type: integer
         createdAt:
           type: string
         updatedAt:
           type: string
-      required: [id, name, description, color, emailCount, createdAt, updatedAt]
+      required: [id, name, description, color, emailCount, ruleCount, createdAt, updatedAt]
 
     CategoryInput:
       type: object
@@ -362,6 +430,39 @@ components:
           type: string
         color:
           type: string
+
+    CategoryRule:
+      type: object
+      properties:
+        id:
+          type: integer
+        categoryId:
+          type: integer
+        fieldType:
+          type: string
+          enum: [sender, subject, body]
+        operator:
+          type: string
+          enum: [contains, equals, starts_with, ends_with]
+        value:
+          type: string
+        createdAt:
+          type: string
+      required: [id, categoryId, fieldType, operator, value, createdAt]
+
+    CreateRuleInput:
+      type: object
+      properties:
+        fieldType:
+          type: string
+          enum: [sender, subject, body]
+        operator:
+          type: string
+          enum: [contains, equals, starts_with, ends_with]
+        value:
+          type: string
+          minLength: 1
+      required: [fieldType, operator, value]
 
     Email:
       type: object

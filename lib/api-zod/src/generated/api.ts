@@ -25,6 +25,7 @@ export const ListCategoriesResponseItem = zod.object({
   "description": zod.string(),
   "color": zod.string(),
   "emailCount": zod.number(),
+  "ruleCount": zod.number(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -57,6 +58,7 @@ export const GetCategoryResponse = zod.object({
   "description": zod.string(),
   "color": zod.string(),
   "emailCount": zod.number(),
+  "ruleCount": zod.number(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -84,6 +86,7 @@ export const UpdateCategoryResponse = zod.object({
   "description": zod.string(),
   "color": zod.string(),
   "emailCount": zod.number(),
+  "ruleCount": zod.number(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -94,6 +97,50 @@ export const UpdateCategoryResponse = zod.object({
  */
 export const DeleteCategoryParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List rules for a category
+ */
+export const ListCategoryRulesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListCategoryRulesResponseItem = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number(),
+  "fieldType": zod.enum(['sender', 'subject', 'body']),
+  "operator": zod.enum(['contains', 'equals', 'starts_with', 'ends_with']),
+  "value": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListCategoryRulesResponse = zod.array(ListCategoryRulesResponseItem)
+
+
+/**
+ * @summary Add a rule to a category
+ */
+export const CreateCategoryRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const CreateCategoryRuleBody = zod.object({
+  "fieldType": zod.enum(['sender', 'subject', 'body']),
+  "operator": zod.enum(['contains', 'equals', 'starts_with', 'ends_with']),
+  "value": zod.string().min(1)
+})
+
+
+/**
+ * @summary Delete a rule from a category
+ */
+export const DeleteCategoryRuleParams = zod.object({
+  "id": zod.coerce.number(),
+  "ruleId": zod.coerce.number()
 })
 
 

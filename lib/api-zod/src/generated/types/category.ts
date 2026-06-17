@@ -12,6 +12,7 @@ export interface Category {
   description: string;
   color: string;
   emailCount: number;
+  ruleCount: number;
   createdAt: string;
   updatedAt: string;
 }
