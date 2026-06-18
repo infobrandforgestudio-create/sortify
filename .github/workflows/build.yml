@@ -20,6 +20,16 @@ jobs:
         with:
           node-version: 22
 
+      - name: Remove Replit platform exclusion overrides
+        run: |
+          node -e "
+            const fs = require('fs');
+            let yaml = fs.readFileSync('pnpm-workspace.yaml', 'utf8');
+            yaml = yaml.replace(/^.*: '-'\n/gm, '');
+            fs.writeFileSync('pnpm-workspace.yaml', yaml);
+            console.log('Cleaned pnpm-workspace.yaml');
+          "
+
       - name: Install dependencies
         run: rm -f pnpm-lock.yaml && pnpm install
 
@@ -52,6 +62,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Remove Replit platform exclusion overrides
+        shell: bash
+        run: |
+          node -e "
+            const fs = require('fs');
+            let yaml = fs.readFileSync('pnpm-workspace.yaml', 'utf8');
+            yaml = yaml.replace(/^.*: '-'\n/gm, '');
+            fs.writeFileSync('pnpm-workspace.yaml', yaml);
+            console.log('Cleaned pnpm-workspace.yaml');
+          "
 
       - name: Install dependencies
         shell: bash
