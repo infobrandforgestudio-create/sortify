@@ -28,20 +28,16 @@ mac:
       arch:
         - x64
         - arm64
-  icon: build/icon.icns
 
 win:
   target:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.ico
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
   createDesktopShortcut: true
   createStartMenuShortcut: true
 
@@ -50,5 +46,4 @@ linux:
     - target: AppImage
       arch:
         - x64
-  icon: build/icon.png
   category: Office
