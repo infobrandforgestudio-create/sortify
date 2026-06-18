@@ -5,6 +5,7 @@ import emailsRouter from "./emails";
 import syncRouter from "./sync";
 import statsRouter from "./stats";
 import imapRouter from "./imap";
+import downloadRouter from "./download";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use("/emails", emailsRouter);
 router.use("/sync", syncRouter);
 router.use("/stats", statsRouter);
 router.use("/imap", imapRouter);
+router.use("/download", downloadRouter);
 
 export default router;

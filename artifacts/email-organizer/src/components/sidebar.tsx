@@ -6,7 +6,8 @@ import {
   Settings, 
   Tags,
   Mail,
-  Zap
+  Zap,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,8 +52,20 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border text-xs text-sidebar-foreground/60">
-        AI-Powered Inbox
+      <div className="p-4 border-t border-sidebar-border">
+        <Link
+          href="/download"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 w-full",
+            location === "/download"
+              ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          )}
+        >
+          <Download className="w-4 h-4" />
+          Download App
+        </Link>
+        <p className="text-xs text-sidebar-foreground/50 mt-3 px-3">AI-Powered Inbox</p>
       </div>
     </div>
   );

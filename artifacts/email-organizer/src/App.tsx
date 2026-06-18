@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Mail } from "lucide-react";
+import { Mail, Download } from "lucide-react";
 
 import { Layout } from "@/components/layout";
 import Dashboard from "@/pages/dashboard";
@@ -16,6 +16,7 @@ import CategoryEmails from "@/pages/category-emails";
 import Emails from "@/pages/emails";
 import Rules from "@/pages/rules";
 import Settings from "@/pages/settings";
+import DownloadPage from "@/pages/download";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -190,6 +191,19 @@ function LandingPage() {
           >
             Create account
           </button>
+          <div className="flex items-center gap-3">
+            <hr className="flex-1 border-[hsl(250,20%,88%)]" />
+            <span className="text-xs text-[hsl(250,15%,60%)]">or</span>
+            <hr className="flex-1 border-[hsl(250,20%,88%)]" />
+          </div>
+          <button
+            type="button"
+            onClick={() => setLocation("/download")}
+            className="w-full py-3 px-4 rounded-xl border border-[hsl(250,20%,85%)] bg-white text-[hsl(250,40%,10%)] font-semibold hover:bg-[hsl(250,20%,97%)] transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download Desktop App
+          </button>
         </div>
         <p className="text-xs text-[hsl(250,15%,60%)]">
           Continue with Google, Apple, Microsoft, or email
@@ -296,6 +310,7 @@ function ClerkProviderWithRoutes() {
                 </Protected>
               )}
             </Route>
+            <Route path="/download" component={DownloadPage} />
             <Route component={NotFound} />
           </Switch>
           <Toaster />

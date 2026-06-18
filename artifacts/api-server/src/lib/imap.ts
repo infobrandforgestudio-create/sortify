@@ -75,7 +75,7 @@ export async function testImapConnection(opts: {
     await client.logout();
     return { success: true, message: `Connected successfully to ${opts.imapHost}` };
   } catch (err: unknown) {
-    await client.close().catch(() => {});
+    client.close();
 
     if (err && typeof err === "object") {
       const e = err as Record<string, unknown>;
